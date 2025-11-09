@@ -1,0 +1,73 @@
+---
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+
+const features = [
+  {
+    title: "Smart Note Taking",
+    description: "Capture and organize your teaching notes with intelligent categorization and quick search.",
+    icon: "📝",
+    badge: "AI-Powered"
+  },
+  {
+    title: "Task Management",
+    description: "Track lesson plans, assignments, and to-dos with customizable priority levels and deadlines.",
+    icon: "✅",
+    badge: "Organized"
+  },
+  {
+    title: "Student Progress",
+    description: "Monitor individual student progress and maintain detailed records all in one place.",
+    icon: "📊",
+    badge: "Comprehensive"
+  },
+  {
+    title: "Lesson Planning",
+    description: "Plan your curriculum with templates, standards alignment, and resource management.",
+    icon: "📚",
+    badge: "Efficient"
+  },
+  {
+    title: "Parent Communication",
+    description: "Keep parents informed with automated updates and communication logs.",
+    icon: "💬",
+    badge: "Connected"
+  },
+  {
+    title: "Time Tracking",
+    description: "Understand how you spend your time and optimize your teaching workflow.",
+    icon: "⏰",
+    badge: "Insightful"
+  }
+];
+---
+
+<section id="features" class="py-20 sm:py-32 bg-white">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center space-y-4 mb-16">
+      <h2 class="text-3xl sm:text-4xl font-bold text-neutral-900">
+        Everything You Need to Stay Organized
+      </h2>
+      <p class="text-lg text-neutral-600 max-w-2xl mx-auto">
+        Zerra provides powerful tools designed specifically for teachers to manage their daily tasks and long-term planning.
+      </p>
+    </div>
+    
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {features.map((feature) => (
+        <Card key={feature.title} className="p-6 hover:shadow-lg transition-shadow border-neutral-200">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div class="text-3xl">{feature.icon}</div>
+              <Badge variant="secondary" className="bg-green-100 text-green-700">
+                {feature.badge}
+              </Badge>
+            </div>
+            <h3 class="text-xl font-semibold text-neutral-900">{feature.title}</h3>
+            <p class="text-neutral-600 leading-relaxed">{feature.description}</p>
+          </div>
+        </Card>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,27 @@
+---
+import { Button } from "@/components/ui/button";
+import Logo from "./Logo.astro"
+---
+
+<nav class="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-lg">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex h-16 items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <!-- Replace with your actual logo -->
+        <Logo className="w-10"/>
+        <span class="text-xl font-bold text-neutral-900">Zerra</span>
+      </div>
+      
+      <div class="hidden md:flex items-center space-x-8">
+        <a href="#features" class="text-neutral-600 hover:text-green-600 transition-colors">Features</a>
+        <a href="#testimonials" class="text-neutral-600 hover:text-green-600 transition-colors">Testimonials</a>
+        <a href="#pricing" class="text-neutral-600 hover:text-green-600 transition-colors">Pricing</a>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <Button variant="ghost" className="hidden sm:inline-flex">Sign In</Button>
+        <Button className="bg-green-600 hover:bg-green-700">Start Free Trial</Button>
+      </div>
+    </div>
+  </div>
+</nav>
