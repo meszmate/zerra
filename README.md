@@ -1,2 +1,2 @@
 # zerra
-Zerra helps you organize your things as a teacher
+Zerra helps you organize your things
