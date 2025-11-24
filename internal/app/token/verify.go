@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/meszmate/zerra/internal/errx"
+	"github.com/meszmate/zerra/internal/models"
 )
 
 func (s *tokenService) GetSession(ctx context.Context, sessionID string) (*models.Session, *errx.Error) {
@@ -28,24 +29,24 @@ func (s *tokenService) GetSession(ctx context.Context, sessionID string) (*model
 	return sess, nil
 }
 
-func (s *tokenService) ValidateAccessToken(ctx context.Context, accessToken string) (string, *errx.Error) {
-	t, err := s.verifyToken(accessToken)
+func (s *tokenService) ValidateAccessToken(ctx context.Context, accessToken string) (*models.Session, *errx.Error) {
+	t, err := s.VerifyToken(accessToken)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if t.ExpiresAt.Before(time.Now()) {
-		return "", errx.ErrToken
+		return nil, errx.ErrToken
 	}
 
 	session, err := s.GetSession(ctx, t.SessionID)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	if session.LastRefreshedAt.Equal(t.IssuedAt.Time) {
-		return "", errx.ErrToken
+	if session.AccessNonce != t.Nonce || !session.LastRefreshedAt.Equal(t.IssuedAt.Time) {
+		return nil, errx.ErrToken
 	}
 
-	return session.UserID, nil
+	return session, nil
 }

@@ -22,8 +22,7 @@ type TokenClaims struct {
 	jwt.RegisteredClaims
 }
 
-// GenerateAccessToken creates a short-lived JWT.
-func (s *tokenService) generateToken(userID, sessionID, nonce string, issuedAt, expiresAt time.Time) (string, error) {
+func (s *tokenService) GenerateToken(userID, sessionID, nonce string, issuedAt, expiresAt time.Time) (string, error) {
 	claims := TokenClaims{
 		UserID:    userID,
 		SessionID: sessionID,
@@ -37,8 +36,8 @@ func (s *tokenService) generateToken(userID, sessionID, nonce string, issuedAt, 
 	return token.SignedString(s.AuthSecret)
 }
 
-func (s *tokenService) verifyToken(tokenStr string) (*TokenClaims, *errx.Error) {
-	token, err := jwt.ParseWithClaims(tokenStr, &TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (s *tokenService) VerifyToken(tokenStr string) (*TokenClaims, *errx.Error) {
+	token, err := jwt.ParseWithClaims(tokenStr, &TokenClaims{}, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errx.ErrToken
 		}
@@ -108,7 +107,7 @@ func (s *tokenService) GenerateSession(ctx context.Context, userID string, ipadd
 	}
 	session.AccessNonce = accessNonce
 
-	accessToken, err := s.generateToken(userID, session.ID, accessNonce, issuedAt, accessTokenExpiresAt)
+	accessToken, err := s.GenerateToken(userID, session.ID, accessNonce, issuedAt, accessTokenExpiresAt)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, errx.InternalError()
@@ -122,7 +121,7 @@ func (s *tokenService) GenerateSession(ctx context.Context, userID string, ipadd
 	}
 	session.RefreshNonce = refreshNonce
 
-	refreshToken, err := s.generateToken(userID, session.ID, refreshNonce, issuedAt, refreshTokenExpiresAt)
+	refreshToken, err := s.GenerateToken(userID, session.ID, refreshNonce, issuedAt, refreshTokenExpiresAt)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, errx.InternalError()

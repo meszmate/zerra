@@ -8,14 +8,14 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
-func HashPassword(password string) (string, error) {
+func Hash(text string) (string, error) {
 	salt := make([]byte, saltLength)
 	_, err := rand.Read(salt)
 	if err != nil {
 		return "", err
 	}
 
-	hash := argon2.IDKey([]byte(password), salt, iterations, memory, parallelism, keyLength)
+	hash := argon2.IDKey([]byte(text), salt, iterations, memory, parallelism, keyLength)
 
 	saltB64 := base64.RawStdEncoding.EncodeToString(salt)
 	hashB64 := base64.RawStdEncoding.EncodeToString(hash)

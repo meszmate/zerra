@@ -23,7 +23,7 @@ func (s *tokenService) saveSession(ctx context.Context, session *models.Session,
 		return errx.InternalError()
 	}
 
-	if err := s.Cache.Set(ctx, getSessionKey(session.ID), data, ttl).Err(); err != nil {
+	if err := s.cache.Set(ctx, getSessionKey(session.ID), data, ttl).Err(); err != nil {
 		return errx.InternalError()
 	}
 
@@ -31,7 +31,7 @@ func (s *tokenService) saveSession(ctx context.Context, session *models.Session,
 }
 
 func (s *tokenService) getSession(ctx context.Context, sessionID string) (*models.Session, *errx.Error) {
-	data, err := s.Cache.Get(ctx, getSessionKey(sessionID)).Bytes()
+	data, err := s.cache.Get(ctx, getSessionKey(sessionID)).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
 			return nil, nil
@@ -47,4 +47,13 @@ func (s *tokenService) getSession(ctx context.Context, sessionID string) (*model
 	}
 
 	return &session, nil
+}
+
+func (s *tokenService) deleteSession(ctx context.Context, sessionID string) *errx.Error {
+	if err := s.cache.Del(ctx, getSessionKey(sessionID)).Err(); err != nil {
+		sentry.CaptureException(err)
+		return errx.InternalError()
+	}
+
+	return nil
 }

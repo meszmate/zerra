@@ -12,19 +12,16 @@ import (
 	"github.com/meszmate/zerra/internal/errx"
 	"github.com/meszmate/zerra/internal/infrastructure/db"
 	"github.com/meszmate/zerra/internal/models"
-	"github.com/meszmate/zerra/internal/pkg/encrypt"
 )
 
 type UserRepostory interface {
 	CreateUser(ctx context.Context, email, password string) (*models.User, *errx.Error)
-	ExternalLogin(ctx context.Context, email string) (*models.User, *errx.Error)
 	GetUser(ctx context.Context, id string) (*models.User, *errx.Error)
 	GetUserByEmail(ctx context.Context, email string) (*models.User, *errx.Error)
 }
 
 type userRepostory struct {
-	DB      *db.DB
-	Encrypt *encrypt.Encrypter
+	DB *db.DB
 }
 
 func NewUserRepostory(db *db.DB) UserRepostory {
@@ -33,7 +30,7 @@ func NewUserRepostory(db *db.DB) UserRepostory {
 	}
 }
 
-func (r *userRepostory) CreateUser(ctx context.Context, email, password string) (*models.User, *errx.Error) {
+func (r *userRepostory) CreateUser(ctx context.Context, email, passwordHash string) (*models.User, *errx.Error) {
 	id := uuid.NewString()
 	vMail, err := mail.ParseAddress(email)
 	if err != nil {
@@ -51,7 +48,7 @@ func (r *userRepostory) CreateUser(ctx context.Context, email, password string) 
 	var params = []any{
 		id,
 		email,
-		password,
+		passwordHash,
 		firstName,
 		lastName,
 		createdAt,

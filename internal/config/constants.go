@@ -1,13 +1,20 @@
 package config
 
-import "time"
-
 const (
 	DefaultColor = "#c4c8cf"
-	Domain       = "warmbly.com"
+	Domain       = "zerra.hu"
+	LimitMin     = 10
+	LimitMax     = 200
 
-	EmailVerificationTTL = 4 * time.Hour
-	ResetPasswordTTL     = 4 * time.Hour
-	AccessTokenTTL       = 15 * time.Minute
-	RefreshTokenTTL      = 60 * 24 * time.Hour
+	CampaignLimitDefault  = 50
+	MinWaitTimeDefault    = 600
+	WarmupBaseDefault     = 10
+	WarmupMaxDefault      = 40
+	WarmupIncreaseDefault = 1
+
+	MaxContactSize = 10240
+
+	SequenceDefaultName  = "New Sequence"
+	SequenceSubjectLimit = 100
+	SequenceBodyLimit    = 30_000
 )

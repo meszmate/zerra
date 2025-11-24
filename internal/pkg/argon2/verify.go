@@ -16,24 +16,24 @@ var (
 	ErrIncompatibleVersion = errors.New("argon2id: incompatible version of argon2")
 )
 
-func VerifyPassword(password, hash string) bool {
+func Verify(text, hash string) (bool, error) {
 	params, salt, key, err := DecodeHash(hash)
 	if err != nil {
-		return false
+		return false, err
 	}
 
-	otherKey := argon2.IDKey([]byte(password), salt, params.Iterations, params.Memory, params.Parallelism, params.KeyLength)
+	otherKey := argon2.IDKey([]byte(text), salt, params.Iterations, params.Memory, params.Parallelism, params.KeyLength)
 
 	keyLen := int32(len(key))
 	otherKeyLen := int32(len(otherKey))
 
 	if subtle.ConstantTimeEq(keyLen, otherKeyLen) == 0 {
-		return false
+		return false, nil
 	}
 	if subtle.ConstantTimeCompare(key, otherKey) == 1 {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
 type Params struct {

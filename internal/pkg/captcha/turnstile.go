@@ -34,8 +34,6 @@ type Turnstile struct {
 	cfg TurnstileConfig
 }
 
-// NewTurnstileFromEnv creates a Turnstile with values from environment.
-// Use this in production (cmd/api).
 func NewTurnstileFromEnv() *Turnstile {
 	return NewTurnstile(TurnstileConfig{
 		Secret:        os.Getenv("TURNSTILE_SECRET"),
@@ -47,7 +45,6 @@ func NewTurnstileFromEnv() *Turnstile {
 	})
 }
 
-// NewTurnstile allows full DI – perfect for tests.
 func NewTurnstile(cfg TurnstileConfig) *Turnstile {
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = &http.Client{Timeout: 10 * time.Second}
@@ -58,9 +55,9 @@ func NewTurnstile(cfg TurnstileConfig) *Turnstile {
 	return &Turnstile{cfg: cfg}
 }
 
-func (t *Turnstile) Verify(ctx context.Context, token, remoteIP string) (bool, *errx.Error) {
+func (t *Turnstile) Verify(ctx context.Context, token, remoteIP string) *errx.Error {
 	if token == "" {
-		return false, errx.ErrCaptcha
+		return errx.ErrCaptcha
 	}
 
 	data := url.Values{
@@ -69,7 +66,7 @@ func (t *Turnstile) Verify(ctx context.Context, token, remoteIP string) (bool, *
 	}
 	if remoteIP != "" {
 		if net.ParseIP(remoteIP) == nil {
-			return false, errx.ErrCaptcha
+			return errx.ErrCaptcha
 		}
 		data.Set("remoteip", remoteIP)
 	}
@@ -77,7 +74,7 @@ func (t *Turnstile) Verify(ctx context.Context, token, remoteIP string) (bool, *
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, t.cfg.SiteVerifyURL, nil)
 	if err != nil {
 		sentry.CaptureException(err)
-		return false, errx.InternalError()
+		return errx.InternalError()
 	}
 	req.PostForm = data
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -85,46 +82,46 @@ func (t *Turnstile) Verify(ctx context.Context, token, remoteIP string) (bool, *
 	resp, err := t.cfg.HTTPClient.Do(req)
 	if err != nil {
 		sentry.CaptureException(err)
-		return false, errx.InternalError()
+		return errx.InternalError()
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		sentry.CaptureException(err)
-		return false, errx.InternalError()
+		return errx.InternalError()
 	}
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // 1 MB max
 	if err != nil {
 		sentry.CaptureException(err)
-		return false, errx.InternalError()
+		return errx.InternalError()
 	}
 
 	var r Response
 	if err := json.Unmarshal(body, &r); err != nil {
 		sentry.CaptureException(err)
-		return false, errx.InternalError()
+		return errx.InternalError()
 	}
 
 	if !r.Success {
-		return false, errx.ErrCaptcha
+		return errx.ErrCaptcha
 	}
 
 	// Optional: verify hostname
 	if t.cfg.ExpectedHost != "" && r.Hostname != t.cfg.ExpectedHost {
-		return false, errx.ErrCaptcha
+		return errx.ErrCaptcha
 	}
 
 	// Optional: verify timestamp is recent (prevent replay)
 	if r.ChallengeTs != "" {
 		ts, err := time.Parse(time.RFC3339, r.ChallengeTs)
 		if err != nil {
-			return false, errx.ErrCaptcha
+			return errx.ErrCaptcha
 		}
 		if time.Since(ts) > 5*time.Minute {
-			return false, errx.ErrCaptcha
+			return errx.ErrCaptcha
 		}
 	}
 
-	return true, nil
+	return nil
 }

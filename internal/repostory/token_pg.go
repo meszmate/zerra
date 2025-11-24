@@ -4,18 +4,20 @@ import (
 	"context"
 	"time"
 
-	"github.com/getsentry/sentry-go"
 	"github.com/jackc/pgx/v5"
 	"github.com/meszmate/zerra/internal/errx"
 	"github.com/meszmate/zerra/internal/infrastructure/db"
 	"github.com/meszmate/zerra/internal/models"
-	"github.com/meszmate/zerra/internal/pkg/gen"
 )
 
 type TokenRepostory interface {
 	GenerateSession(ctx context.Context, tx pgx.Tx, session *models.Session) *errx.Error
 	GetSession(ctx context.Context, sessionID string) (*models.Session, *errx.Error)
-	RefreshToken(ctx context.Context, sessionID, oldRefreshNonce, refreshNonce, accessNonce string) *errx.Error
+	RefreshToken(ctx context.Context, sessionID, oldRefreshNonce, refreshNonce, accessNonce string, issuedAt time.Time) *errx.Error
+	RevokeSession(ctx context.Context, tx pgx.Tx, sessionID string, revokedAt time.Time) *errx.Error
+
+	FindExpiredSessions(ctx context.Context, userID string, cutoff time.Time) ([]string, *errx.Error)
+	RevokeSessions(ctx context.Context, userID string) *errx.Error
 }
 
 type tokenRepostory struct {
@@ -122,7 +124,7 @@ func (r *tokenRepostory) RefreshToken(ctx context.Context, sessionID, oldRefresh
 		params...,
 	)
 	if err != nil {
-		db.CaptureError(err, query, params, "queryrow")
+		db.CaptureError(err, query, params, "exec")
 		return errx.InternalError()
 	}
 
@@ -133,98 +135,92 @@ func (r *tokenRepostory) RefreshToken(ctx context.Context, sessionID, oldRefresh
 	return nil
 }
 
-func (r *tokenRepostory) GenerateEmailVerificationCode(ctx context.Context, email string) (string, *errx.Error) {
-	tx, err := r.DB.Begin(ctx)
-	if err != nil {
-		db.CaptureError(err, "", nil, "begin")
-		return "", errx.InternalError()
-	}
-	defer tx.Rollback(ctx)
-
-	code, err := gen.VerificationCode()
-	if err != nil {
-		sentry.CaptureException(err)
-		return "", errx.InternalError()
-	}
-	encryptedCode, err := r.Encrypt.Encrypt(code)
-	if err != nil {
-		sentry.CaptureException(err)
-		return "", errx.InternalError()
-	}
-	expiresAt := time.Now().Add(time.Duration(config.EMAIL_VERIFICATION_EXPIRATION))
-
+func (r *tokenRepostory) RevokeSession(ctx context.Context, tx pgx.Tx, sessionID string, revokedAt time.Time) *errx.Error {
 	query := `
-		INSERT INTO email_verification (email, code, expires_at)
-		VALUES ($1, $2, $3)
+		UPDATE sessions
+		SET revoked_at = $1
+		WHERE id = $2
 	`
 
 	params := []any{
-		email,
-		encryptedCode,
-		expiresAt,
+		revokedAt, sessionID,
 	}
 
-	_, err = tx.Exec(
+	_, err := tx.Exec(
 		ctx,
 		query,
 		params...,
 	)
 	if err != nil {
 		db.CaptureError(err, query, params, "exec")
-		return "", errx.InternalError()
-	}
-	if err := tx.Commit(ctx); err != nil {
-		db.CaptureError(err, "", nil, "commit")
-		return "", errx.InternalError()
+		return errx.InternalError()
 	}
 
-	return code, nil
+	return nil
 }
 
-func (r *tokenRepostory) GeneratePasswordVerificationToken(ctx context.Context, email string) (string, *errx.Error) {
-	tx, err := r.DB.Begin(ctx)
-	if err != nil {
-		db.CaptureError(err, "", nil, "begin")
-		return "", errx.InternalError()
-	}
-	defer tx.Rollback(ctx)
+func (r *tokenRepostory) FindExpiredSessions(ctx context.Context, userID string, cutoff time.Time) ([]string, *errx.Error) {
+	query := `
+        SELECT id
+        FROM sessions
+        WHERE revoked_at IS NULL
+          AND last_refreshed_at < $1
+    `
 
 	params := []any{
-		email,
+		cutoff,
 	}
 
-	var userid string
-	var exists bool
-	err = tx.QueryRow(
+	rows, err := r.DB.Query(
+		ctx,
+		query,
+		cutoff,
+	)
+	if err != nil {
+		db.CaptureError(err, query, params, "query")
+		return nil, errx.InternalError()
+	}
+	defer rows.Close()
+
+	var sessions []string
+	for rows.Next() {
+		var s string
+		if err := rows.Scan(&s); err != nil {
+			db.CaptureError(err, "", nil, "scan")
+			return nil, errx.InternalError()
+		}
+		sessions = append(sessions, s)
+	}
+
+	if err := rows.Err(); err != nil {
+		db.CaptureError(err, "", nil, "rows_err")
+		return nil, errx.InternalError()
+	}
+
+	return sessions, nil
+}
+
+func (r *tokenRepostory) RevokeSessions(ctx context.Context, userID string) *errx.Error {
+	query := `
+        UPDATE sessions
+		SET revoked_at = now()
+        WHERE revoked_at IS NULL
+		  AND user_id = $1
+    `
+
+	params := []any{
+		userID,
+	}
+
+	_, err := r.DB.Exec(
 		ctx,
 		query,
 		params...,
-	).Scan(&userid, &exists)
+	)
 	if err != nil {
-		db.CaptureError(err, query, params, "queryrow")
-		return "", errx.InternalError()
+		db.CaptureError(err, query, params, "exec")
+		return errx.InternalError()
 	}
 
-	if exists {
-		return "", errx.Userf("There is already an active password reset token.")
-	}
-
-	token, err := gen.Token(gen.AUTH_SESSION_TOKEN_LEN)
-	if err != nil {
-		return "", errx.Internalf(db.Cfg.Log, "DB: GeneratePasswordVerificationToken token generation", err)
-	}
-
-	expiresAt := time.Now().Add(time.Duration(config.RESET_PASSWORD_EXPIRATION))
-
-	_, err = tx.Exec(ctx,
-		"INSERT INTO password_reset (user_id, token, expires_at) VALUES ($1, $2, $3)",
-		userid, crypto.HashTokenSHA256(token), expiresAt)
-	if err != nil {
-		return "", errx.Internalf(db.Cfg.Log, "DB: GeneratePasswordVerificationToken exec", err)
-	}
-	if err := tx.Commit(ctx); err != nil {
-		return "", errx.Internalf(db.Cfg.Log, "DB: GeneratePasswordVerificationToken commit", err)
-	}
-
-	return token, nil
+	return nil
 }

@@ -11,7 +11,7 @@ import (
 )
 
 func (s *tokenService) RefreshToken(ctx context.Context, refreshToken string) (*models.Token, *errx.Error) {
-	t, err := s.verifyToken(refreshToken)
+	t, err := s.VerifyToken(refreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (s *tokenService) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, errx.InternalError()
 	}
 
-	newAccessToken, xerr := s.generateToken(sess.UserID, sess.ID, accessNonce, issuedAt, accessTokenExpiresAt)
+	newAccessToken, xerr := s.GenerateToken(sess.UserID, sess.ID, accessNonce, issuedAt, accessTokenExpiresAt)
 	if xerr != nil {
 		sentry.CaptureException(xerr)
 		return nil, errx.InternalError()
@@ -51,13 +51,13 @@ func (s *tokenService) RefreshToken(ctx context.Context, refreshToken string) (*
 		return nil, errx.InternalError()
 	}
 
-	newRefreshToken, xerr := s.generateToken(sess.UserID, sess.ID, refreshNonce, issuedAt, refreshTokenExpiresAt)
-	if err != nil {
+	newRefreshToken, xerr := s.GenerateToken(sess.UserID, sess.ID, refreshNonce, issuedAt, refreshTokenExpiresAt)
+	if xerr != nil {
 		sentry.CaptureException(xerr)
 		return nil, errx.InternalError()
 	}
 
-	if err := s.tokenRepostory.RefreshToken(ctx, sess.ID, refreshToken, accessNonce, refreshNonce); err != nil {
+	if err := s.tokenRepostory.RefreshToken(ctx, sess.ID, refreshToken, accessNonce, refreshNonce, issuedAt); err != nil {
 		sentry.CaptureException(err)
 		return nil, errx.InternalError()
 	}

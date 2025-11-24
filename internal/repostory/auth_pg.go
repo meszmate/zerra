@@ -2,17 +2,23 @@ package repostory
 
 import (
 	"context"
+	"errors"
 	"net/mail"
-	"os/user"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/meszmate/zerra/internal/errx"
 	"github.com/meszmate/zerra/internal/infrastructure/db"
+	"github.com/meszmate/zerra/internal/models"
 	"github.com/meszmate/zerra/internal/pkg/argon2"
 )
 
 type AuthRepostory interface {
+	IsValidCredentials(ctx context.Context, email, password string) (string, *errx.Error)
+	ExternalLogin(ctx context.Context, email string) (*models.User, *errx.Error)
+	ResetPassword(ctx context.Context, userID string, password string) *errx.Error
 }
 
 type authRepostory struct {
@@ -25,38 +31,47 @@ func NewAuthRepostory(db *db.DB) AuthRepostory {
 	}
 }
 
-func (r *authRepostory) IsValidCredentials(ctx context.Context, email, password string) bool {
+func (r *authRepostory) IsValidCredentials(ctx context.Context, email, password string) (string, *errx.Error) {
+	var id string
 	var pw string
-	err := r.DB.QueryRow(ctx, "SELECT password_hash FROM users WHERE email = $1", email).Scan(&pw)
-	if err != nil {
-		return false
-	}
-	return argon2.VerifyPassword(password, pw)
-}
 
-func (r *authRepostory) CleanCode(ctx context.Context, email string) *errx.Error {
-	q := `DELETE FROM email_verification
-		WHERE email = $1`
+	query := `
+		SELECT id, password_hash
+		FROM users
+		WHERE email = $1
+	`
 
-	var params = []any{
+	params := []any{
 		email,
 	}
 
-	_, err := r.DB.Exec(
+	err := r.DB.QueryRow(
 		ctx,
-		q,
+		query,
 		params...,
-	)
-
+	).Scan(&id, &pw)
 	if err != nil {
-		db.CaptureError(err, q, nil, "exec")
-		return errx.InternalError()
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", errx.ErrCredentials
+		}
+		db.CaptureError(err, query, params, "queryrow")
+		return "", errx.InternalError()
 	}
 
-	return nil
+	val, err := argon2.Verify(password, pw)
+	if err != nil {
+		sentry.CaptureException(err)
+		return "", errx.InternalError()
+	}
+
+	if !val {
+		return "", errx.ErrCredentials
+	}
+
+	return id, nil
 }
 
-func (r *userRepostory) ExternalLogin(ctx context.Context, email string) (*user.User, *errx.Error) {
+func (r *authRepostory) ExternalLogin(ctx context.Context, email string) (*models.User, *errx.Error) {
 	id := uuid.NewString()
 	vMail, err := mail.ParseAddress(email)
 	if err != nil {
@@ -84,7 +99,7 @@ func (r *userRepostory) ExternalLogin(ctx context.Context, email string) (*user.
 		now,
 	}
 
-	var u user.User
+	var u models.User
 	err = r.DB.QueryRow(
 		ctx,
 		query,
@@ -96,4 +111,23 @@ func (r *userRepostory) ExternalLogin(ctx context.Context, email string) (*user.
 	}
 
 	return &u, nil
+}
+
+func (r *authRepostory) ResetPassword(ctx context.Context, userID string, passwordHash string) *errx.Error {
+	query := `
+		UPDATE users
+		SET password_hash = $1, updated_at = now()
+		WHERE id = $2
+	`
+	params := []any{
+		passwordHash,
+		userID,
+	}
+
+	if _, err := r.DB.Exec(ctx, query, params...); err != nil {
+		db.CaptureError(err, query, params, "exec")
+		return errx.InternalError()
+	}
+
+	return nil
 }

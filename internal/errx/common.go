@@ -17,16 +17,18 @@ var (
 	ErrJSONKey   = New(BadRequest, "JSON key can only contain characters and underscore.")
 
 	// Authorization
-	ErrToken      = New(BadRequest, "Invalid or expired token.")
-	ErrAuth       = New(BadRequest, "Missing or invalid Authorization header.")
-	ErrEmailLimit = New(BadRequest, "Too much attempts, please try again later.")
+	ErrToken = New(BadRequest, "Invalid or expired token.")
+	ErrAuth  = New(BadRequest, "Missing or invalid Authorization header.")
 
 	ErrUser        = New(BadRequest, "User doesn't exists.")
 	ErrPassword    = New(BadRequest, "The password must be between 8 and 50 characters long and contain both uppercase and lowercase letters, as well as a number.")
 	ErrEmail       = New(BadRequest, "Invalid email address.")
 	ErrCredentials = New(BadRequest, "Invalid email or password.")
-	ErrSession     = New(BadRequest, "Session expired or doesn't exists.")
+	ErrSession     = New(BadRequest, "Invalid or expired session.")
 	ErrCodeLimit   = New(BadRequest, "Too many attempts. Start a new session and try again later.")
 	ErrCode        = New(BadRequest, "Invalid or expired verification code.")
-	ErrCaptcha     = New(BadRequest, "We couldn't verify that you are human, please try again or refresh the page.")
+	ErrAuthLimit   = New(BadRequest, "Too many attempts, please try again later.")
+
+	// Captch
+	ErrCaptcha = New(BadRequest, "We couldn’t verify you’re human. Please try the security check again or reload the page.")
 )
