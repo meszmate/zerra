@@ -2,13 +2,16 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Toaster } from "react-hot-toast"
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 
 import * as Sentry from "@sentry/react";
-import Home from './pages/Index'
+import Home from './pages/index'
 import RootAppLayout from './pages/app/layout'
+import AuthLayout from './pages/auth/layout'
+import { LoginForm } from './pages/auth/login'
+import { RegisterForm } from './pages/auth/register'
+import LoginConfirm from './pages/auth/login-confirm'
 
 Sentry.init({
   dsn: "https://412466daced4b1d85ee040eef66efc95@o4510248538472448.ingest.us.sentry.io/4510248563113984",
@@ -28,6 +31,34 @@ const router = createBrowserRouter([
     element: <RootAppLayout />,
     children: [
     ]
+  },
+  {
+    path: "auth",
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "login",
+        children: [
+          {
+            index: true,
+            element: <LoginForm />,
+          },
+          {
+            path: "confirm",
+            element: <LoginConfirm />,
+          }
+        ]
+      },
+      {
+        path: "register",
+        children: [
+          {
+            index: true,
+            element: <RegisterForm />,
+          },
+        ]
+      }
+    ]
   }
 ]);
 
@@ -36,7 +67,6 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
       <Toaster />
-      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   </StrictMode>,
 )
