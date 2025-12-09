@@ -9,8 +9,10 @@ import (
 	"github.com/meszmate/zerra/internal/api/middleware"
 )
 
-func New(h *handler.Handler, m *middleware.Handler, open bool, port string) {
+func Run(h *handler.Handler, m *middleware.Handler, addr string) {
 	r := gin.Default()
+	r.MaxMultipartMemory = 4 << 20
+
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"POST", "GET", "PATCH", "OPTIONS", "DELETE"},
@@ -38,4 +40,6 @@ func New(h *handler.Handler, m *middleware.Handler, open bool, port string) {
 		r.POST("/logout-all", h.LogoutAll)
 		r.GET("/me", h.GetUser)
 	}
+
+	r.Run(addr)
 }

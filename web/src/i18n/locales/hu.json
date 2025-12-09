@@ -1,0 +1,61 @@
+{
+    "shortName": "Zerra",
+    "longName": "Digitális Tanári Zsebkönyv",
+    "common": {
+        "or": "Vagy",
+        "new": "Új"
+    },
+    "auth": {
+        "email": "Email",
+        "emailPlaceholder": "nev@pelda.com",
+        "password": "Jelszó",
+        "passwordPlaceholder": "",
+        "passwordConfirm": "$t(auth.password) Megerősítése",
+        "passwordConfirmPlaceholder": "",
+        "passwordMatch": "Nem egyeznek a jelszavak.",
+        "login": {
+            "name": "Bejelentkezés",
+            "description": "Add meg a szükséges adatokat a bejelentkezéshez",
+            "title": "$t(auth.login.name)",
+            "forgotPassword": "Elfelejtetted Jelszavad?",
+            "buttonLabel": "$t(auth.login.name)",
+            "external": {
+                "google": "$t(auth.login.name) Google-el"
+            },
+            "footerText": "Nincs fiókod? <redirect>Regisztráció</redirect>"
+        },
+        "session": {
+            "notfoundRedirect": "Session nem található, átirányítás..."
+        },
+        "register": {
+            "success": "Fiók sikeresen létrehozva",
+            "loading": "Fiók létrehozása...",
+            "name": "Regisztráció",
+            "title": "Fiók Regisztrálása",
+            "description": "Add meg az információkot alul, a fiókod regisztrálásához",
+            "buttonTitle": "$t(auth.register.name)",
+            "footerText": "Van már fiókod? <l>$t(auth.login.name)</l>"
+        },
+        "code": {
+            "loading": "Hitelesítés...",
+            "sentCodeToast": "A hitelesítőkód sikeresen el lett küldve az email címre.",
+            "sentCode": "A kőd el lett küldve a <email>{{val, string}}</email> címre",
+            "enter": "Verification code",
+            "footerDescription": "Enter the 6-digit code sent to your email.",
+            "noCode": "Nem kaptad meg a kódot? <l>Új kód kérése</l>"
+        },
+        "reset_password": {
+            "title": "Jelszó Visszaállítása",
+            "loading": "Küldés...",
+            "description": "Kérj jelszómegváltoztató linket az email címedre.",
+            "sentEmail": "Jelszó megváltoztatásához szükséges link el lett küldve a megadott email címre.",
+            "buttonLabel": "$t(auth.reset_password.title)",
+            "footerText": "Megvan a jelszó? <l>Bejelentkezés</l>",
+            "newPassword": "$t(common.new) $t(auth.password)"
+        }
+    },
+    "user": {
+        "first_name": "Keresztnév",
+        "last_name": "Vezetéknév"
+    }
+}

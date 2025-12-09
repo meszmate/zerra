@@ -34,10 +34,12 @@ type Turnstile struct {
 	cfg TurnstileConfig
 }
 
-func NewTurnstileFromEnv() *Turnstile {
-	return NewTurnstile(TurnstileConfig{
+const TurnstileVerifyEndpoint = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+func NewTurnstile(turnstileSecret string) *Turnstile {
+	return NewTurnstileFromConfig(TurnstileConfig{
 		Secret:        os.Getenv("TURNSTILE_SECRET"),
-		SiteVerifyURL: "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+		SiteVerifyURL: TurnstileVerifyEndpoint,
 		HTTPClient: &http.Client{
 			Timeout: 10 * time.Second,
 		},
@@ -45,12 +47,12 @@ func NewTurnstileFromEnv() *Turnstile {
 	})
 }
 
-func NewTurnstile(cfg TurnstileConfig) *Turnstile {
+func NewTurnstileFromConfig(cfg TurnstileConfig) *Turnstile {
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = &http.Client{Timeout: 10 * time.Second}
 	}
 	if cfg.SiteVerifyURL == "" {
-		cfg.SiteVerifyURL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+		cfg.SiteVerifyURL = TurnstileVerifyEndpoint
 	}
 	return &Turnstile{cfg: cfg}
 }

@@ -19,6 +19,13 @@ CREATE TABLE organizations (
     updated_at TIMESTAMPTZ DEFAULT now ()
 );
 
-CREATE TABLE  (
-    
+CREATE TYPE file_owner_type AS ENUM ('user', 'organization');
+
+CREATE TABLE files (
+    id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
+    parent_type file_owner_type NOT NULL,
+    parent_id UUID NOT NULL,
+    file_key TEXT NOT NULL,
+    file_type TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now(),
 );

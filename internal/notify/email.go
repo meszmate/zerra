@@ -21,8 +21,8 @@ type emailNotificationService struct {
 	From    string
 }
 
-func NewEmailNotficiationService(ctx context.Context, name, address, region string) (EmailNotificationService, error) {
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
+func NewEmailNotficiationService(ctx context.Context, name, address string) (EmailNotificationService, error) {
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		sentry.CaptureException(err)
 		return nil, err

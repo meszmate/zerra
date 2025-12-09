@@ -33,12 +33,13 @@ type tokenService struct {
 	AuthSecret string
 }
 
-func NewService(db *db.DB, cache *cache.Cache, geo *geo.Client, authSecret string) TokenService {
+func NewService(db *db.DB, tokenRepostory repostory.TokenRepostory, cache *cache.Cache, geo *geo.Client, authSecret string) TokenService {
 	return &tokenService{
 		db:             db,
-		tokenRepostory: repostory.NewTokenRepostory(db),
+		tokenRepostory: tokenRepostory,
 		geo:            geo,
 		cache:          cache,
-		AuthSecret:     authSecret,
+
+		AuthSecret: authSecret,
 	}
 }

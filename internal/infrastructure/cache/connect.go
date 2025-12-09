@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -11,18 +10,19 @@ type Cache struct {
 	*redis.Client
 }
 
-func New(addr, password string) *Cache {
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       0,
-	})
+func New(redisURL string) (*Cache, error) {
+	opts, err := redis.ParseURL(redisURL)
+	if err != nil {
+		return nil, err
+	}
+
+	rdb := redis.NewClient(opts)
 
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		panic(fmt.Sprintf("Failed to test redis connection: %v", err))
+		return nil, err
 	}
 
 	return &Cache{
 		Client: rdb,
-	}
+	}, nil
 }

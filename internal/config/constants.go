@@ -17,4 +17,8 @@ const (
 	SequenceDefaultName  = "New Sequence"
 	SequenceSubjectLimit = 100
 	SequenceBodyLimit    = 30_000
+
+	MaxFormSize        = 4 * 1024 * 1024 // 4 MB
+	MaxAvatarSizeBytes = 2 * 1024 * 1024 // 2 MB
+	AvatarSize         = 256
 )

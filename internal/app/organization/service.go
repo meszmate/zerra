@@ -2,20 +2,20 @@ package organization
 
 import (
 	"github.com/meszmate/zerra/internal/infrastructure/cache"
-	"github.com/meszmate/zerra/internal/infrastructure/db"
+	"github.com/meszmate/zerra/internal/repostory"
 )
 
 type OrganizationService interface {
 }
 
 type organizationService struct {
-	db    *db.DB
-	cache *cache.Cache
+	organizationRepostory repostory.OrganizationRepostory
+	cache                 *cache.Cache
 }
 
-func NewService(db *db.DB, cache *cache.Cache) OrganizationService {
+func NewService(organizationRepostory repostory.OrganizationRepostory, cache *cache.Cache) OrganizationService {
 	return &organizationService{
-		db:    db,
-		cache: cache,
+		organizationRepostory: organizationRepostory,
+		cache:                 cache,
 	}
 }

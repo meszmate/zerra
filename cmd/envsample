@@ -1,0 +1,31 @@
+# DATABASES / SERVICES
+PRIMARY_DB="postgresql://username:password@localhost:5433/database"
+REDIS="redis://arbitrary_usrname:password@ipaddress:6379/0"
+GEO_DB_PATH="./database.mmdb"
+S3_BUCKET=zerra
+
+# Authentication
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GOOGLE_REDIRECT_URI=""
+
+# Notifications
+NOTIFY_NAME="Digitális Tanári Zsebkönyv"
+NOTIFY_ADDRESS="noreply@zerra.hu"
+
+# API
+Hostname="0.0.0.0"
+PORT=8080
+GIN_MODE=release
+
+# Logs
+SENTRY_DSN=""
+
+# SECRETS
+AUTH_SECRET="example123"
+TURNSTILE_SECRET=""
+
+# Amazon AWS
+AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxx
+AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxx
+AWS_REGION=eu-north-1

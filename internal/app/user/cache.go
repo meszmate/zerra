@@ -15,9 +15,20 @@ func getUserKey(id string) string {
 	return "user:" + id
 }
 
+func defaultAvatarsKey() string {
+	return "default_avatars"
+}
+
 func (s *userService) SaveUser(ctx context.Context, user *models.User) *errx.Error {
 	key := getUserKey(user.ID)
-	if err := s.cache.SetEx(ctx, key, user, UserTTL).Err(); err != nil {
+
+	data, err := json.Marshal(user)
+	if err != nil {
+		sentry.CaptureException(err)
+		return errx.InternalError()
+	}
+
+	if err := s.cache.SetEx(ctx, key, data, UserTTL).Err(); err != nil {
 		sentry.CaptureException(err)
 		return errx.InternalError()
 	}
@@ -43,3 +54,5 @@ func (s *userService) getUser(ctx context.Context, userID string) (*models.User,
 
 	return &user, nil
 }
+
+func (s *userService) saveDefaultAvatars(ctx context.Context, avatars []string)

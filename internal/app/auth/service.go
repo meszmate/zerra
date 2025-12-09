@@ -7,7 +7,6 @@ import (
 	"github.com/meszmate/zerra/internal/app/user"
 	"github.com/meszmate/zerra/internal/errx"
 	"github.com/meszmate/zerra/internal/infrastructure/cache"
-	"github.com/meszmate/zerra/internal/infrastructure/db"
 	"github.com/meszmate/zerra/internal/models"
 	"github.com/meszmate/zerra/internal/notify"
 	"github.com/meszmate/zerra/internal/pkg/captcha"
@@ -26,23 +25,33 @@ type AuthService interface {
 }
 
 type authService struct {
-	db                       *db.DB
 	authRepostory            repostory.AuthRepostory
 	userRepostory            repostory.UserRepostory
 	tokenService             token.TokenService
 	userService              user.UserService
 	emailNotificationService notify.EmailNotificationService
-	cache                    *cache.Cache
-	captcha                  *captcha.Turnstile
+
+	cache   *cache.Cache
+	captcha *captcha.Turnstile
 }
 
-func NewService(db *db.DB, cache *cache.Cache, captcha *captcha.Turnstile, tokenService token.TokenService, emailNotificationService notify.EmailNotificationService) AuthService {
+func NewService(
+	authRepostory repostory.AuthRepostory,
+	userRepostory repostory.UserRepostory,
+	tokenService token.TokenService,
+	userService user.UserService,
+	emailNotificationService notify.EmailNotificationService,
+	cache *cache.Cache,
+	captcha *captcha.Turnstile,
+) AuthService {
 	return &authService{
-		db:                       db,
-		authRepostory:            repostory.NewAuthRepostory(db),
+		authRepostory:            authRepostory,
+		userRepostory:            userRepostory,
 		tokenService:             tokenService,
+		userService:              userService,
 		emailNotificationService: emailNotificationService,
-		cache:                    cache,
-		captcha:                  captcha,
+
+		cache:   cache,
+		captcha: captcha,
 	}
 }

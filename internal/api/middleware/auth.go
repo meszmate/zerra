@@ -23,7 +23,7 @@ func (h *Handler) AuthMiddleware() gin.HandlerFunc {
 
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 
-		userID, err := h.tokenService.ValidateAccessToken(c.Request.Context(), token)
+		userID, err := h.TokenService.ValidateAccessToken(c.Request.Context(), token)
 		if err != nil {
 			errx.Handle(c, err)
 			c.Abort()

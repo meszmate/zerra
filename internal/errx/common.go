@@ -31,4 +31,8 @@ var (
 
 	// Captch
 	ErrCaptcha = New(BadRequest, "We couldn’t verify you’re human. Please try the security check again or reload the page.")
+
+	// Image
+	ErrImageFormat = New(BadRequest, "Invalid image format.")
+	ErrImage       = New(BadRequest, "Invalid or unsupported image.")
 )
