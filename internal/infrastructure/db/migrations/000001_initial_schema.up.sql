@@ -5,6 +5,7 @@ CREATE TABLE users (
     last_name VARCHAR(255) NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT,
+    avatar_id UUID,
     created_at TIMESTAMPTZ DEFAULT now (),
     updated_at TIMESTAMPTZ DEFAULT now ()
 );
@@ -25,7 +26,7 @@ CREATE TABLE files (
     id UUID PRIMARY KEY NOT NULL DEFAULT gen_random_uuid (),
     parent_type file_owner_type NOT NULL,
     parent_id UUID NOT NULL,
-    file_key TEXT NOT NULL,
+    name TEXT NOT NULL,
     file_type TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT now(),
 );

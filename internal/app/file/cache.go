@@ -4,26 +4,32 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/meszmate/zerra/internal/errx"
+	"github.com/meszmate/zerra/internal/models"
 	"github.com/redis/go-redis/v9"
 )
 
-func defaultAvatarsKey() string {
-	return "default_avatars"
+var defaultAvatarsKey = "default_avatars"
+
+func (s *fileService) saveDefaultAvatars(ctx context.Context, avatars []models.File) *errx.Error {
+	return s.saveFiles(ctx, defaultAvatarsKey, avatars, DefaultAvatarsTTL)
 }
 
-func (s *fileService) saveDefaultAvatars(ctx context.Context, avatars []string) *errx.Error {
-	key := defaultAvatarsKey()
+func (s *fileService) getDefaultAvatars(ctx context.Context) ([]models.File, *errx.Error) {
+	return s.getFiles(ctx, defaultAvatarsKey)
+}
 
-	data, err := json.Marshal(avatars)
+func (s *fileService) saveFiles(ctx context.Context, key string, files []models.File, ttl time.Duration) *errx.Error {
+	data, err := json.Marshal(files)
 	if err != nil {
 		sentry.CaptureException(err)
 		return errx.InternalError()
 	}
 
-	if err := s.cache.SetEx(ctx, key, data, DefaultAvatarsTTL).Err(); err != nil {
+	if err := s.cache.SetEx(ctx, key, data, ttl).Err(); err != nil {
 		sentry.CaptureException(err)
 		return errx.InternalError()
 	}
@@ -31,9 +37,7 @@ func (s *fileService) saveDefaultAvatars(ctx context.Context, avatars []string) 
 	return nil
 }
 
-func (s *fileService) getDefaultAvatars(ctx context.Context) ([]string, *errx.Error) {
-	key := defaultAvatarsKey()
-
+func (s *fileService) getFiles(ctx context.Context, key string) ([]models.File, *errx.Error) {
 	data, err := s.cache.Get(ctx, key).Bytes()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -44,12 +48,12 @@ func (s *fileService) getDefaultAvatars(ctx context.Context) ([]string, *errx.Er
 		return nil, errx.InternalError()
 	}
 
-	var avatars []string
+	var files []models.File
 
-	if err := json.Unmarshal(data, &avatars); err != nil {
+	if err := json.Unmarshal(data, &files); err != nil {
 		sentry.CaptureException(err)
 		return nil, errx.InternalError()
 	}
 
-	return avatars, nil
+	return files, nil
 }
