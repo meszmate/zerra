@@ -114,3 +114,10 @@ func (r *userRepostory) GetUser(ctx context.Context, userID string) (*models.Use
 func (r *userRepostory) GetUserByEmail(ctx context.Context, email string) (*models.User, *errx.Error) {
 	return r.getUser(ctx, "email", email)
 }
+
+func (r *userRepostory) UpdateUser(ctx context.Context, userID string, data *models.UpdateUser) (*models.User, *errx.Error) {
+	// setClauses := []string{}
+	// args := []any{userID}
+	// argPos := 2
+	return nil, nil
+}

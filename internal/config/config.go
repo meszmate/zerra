@@ -38,7 +38,7 @@ func Load() *Config {
 		NotifyName:    os.Getenv("NOTIFY_NAME"),
 		NotifyAddress: os.Getenv("NOTIFY_ADDRESS"),
 
-		Hostname: os.Getenv("HOSTNAME"),
+		Hostname: os.Getenv("HOST"),
 		Port:     os.Getenv("PORT"),
 
 		SentryDSN: os.Getenv("SENTRY_DSN"),

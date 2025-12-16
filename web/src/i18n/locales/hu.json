@@ -55,7 +55,8 @@
         }
     },
     "user": {
-        "first_name": "Keresztnév",
-        "last_name": "Vezetéknév"
+        "firstName": "Keresztnév",
+        "lastName": "Vezetéknév",
+        "displayName": "{{lastName, string}} {{firstName, string}}"
     }
 }

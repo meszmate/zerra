@@ -31,14 +31,14 @@ func Run(h *handler.Handler, m *middleware.Handler, addr string) {
 		r.POST("/refresh", h.RefreshToken)
 		r.POST("/reset-password/start", h.ResetPasswordStart)
 		r.POST("/reset-password/confirm", h.ResetPasswordStart)
-	}
 
-	protectedAuth := auth.Group("")
-	protectedAuth.Use(m.AuthMiddleware())
-	{
-		r.POST("/logout", h.Logout)
-		r.POST("/logout-all", h.LogoutAll)
-		r.GET("/me", h.GetUser)
+		protectedAuth := auth.Group("")
+		protectedAuth.Use(m.AuthMiddleware())
+		{
+			r.POST("/logout", h.Logout)
+			r.POST("/logout-all", h.LogoutAll)
+			r.GET("/me", h.GetUser)
+		}
 	}
 
 	r.Run(addr)

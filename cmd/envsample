@@ -14,7 +14,7 @@ NOTIFY_NAME="Digitális Tanári Zsebkönyv"
 NOTIFY_ADDRESS="noreply@zerra.hu"
 
 # API
-Hostname="0.0.0.0"
+HOST="0.0.0.0"
 PORT=8080
 GIN_MODE=release
 

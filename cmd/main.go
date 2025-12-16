@@ -88,8 +88,8 @@ func main() {
 			cache,
 			captcha,
 		)
-		fileService = file.NewService(fileClient, fileRepostory, userRepostory, cache)
-		userService = user.NewService(userRepostory, fileService, cache)
+		fileService = file.NewService(db, fileClient, fileRepostory, userRepostory, cache)
+		userService = user.NewService(db, userRepostory, fileService, cache)
 		organizationService = organization.NewService(organizationRepostory, cache)
 
 		addr = cfg.Hostname + ":" + cfg.Port

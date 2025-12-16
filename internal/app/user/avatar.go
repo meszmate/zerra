@@ -49,7 +49,7 @@ func (s *userService) ChangeAvatar(ctx context.Context, userID string, avatar *m
 	}
 
 	name, xerr := utils.GetFileHash(imgreader)
-	if err != nil {
+	if xerr != nil {
 		return nil, xerr
 	}
 
@@ -66,6 +66,19 @@ func (s *userService) ChangeAvatar(ctx context.Context, userID string, avatar *m
 	}
 
 	u.Avatar = f.Name
+
+	query = `
+		UPDATE users
+		SET avatar_id = $1
+		WHERE id = $2
+	`
+
+	params = []any{}
+
+	if _, err := tx.Exec(ctx, query, params...); err != nil {
+		sentry.CaptureException(err)
+		return nil, errx.InternalError()
+	}
 
 	s.SaveUser(ctx, u)
 

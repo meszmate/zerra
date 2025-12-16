@@ -5,6 +5,7 @@ export default interface User {
     last_name: string;
     email: string;
     organizations: Organization[];
+    avatar: string;
 
     updated_at: Date;
     created_at: Date;

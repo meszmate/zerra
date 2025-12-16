@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS organizations;
+DROP TYPE IF EXISTS file_owner_type;
+DROP TABLE IF EXISTS files;
